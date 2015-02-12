@@ -35,7 +35,8 @@ end
 
 # Must set "Anyone who has the link can view" and "Publish to the web"
 get '/:id' do
-  response = Faraday.get("https://docs.google.com/spreadsheets/d/#{params[:id]}/export?gid=0&format=csv")
+  source_url = "https://docs.google.com/spreadsheets/d/#{params[:id]}/export?gid=0&format=csv"
+  response = Faraday.get(source_url)
   if response.status == 200
     data = []
 
@@ -58,6 +59,7 @@ get '/:id' do
           last_name: row['last name'],
           party_name: row['party name'],
           email: row['email'],
+          source_url: source_url,
         }
       else
         halt(500, "no match for #{row['district name']}")
