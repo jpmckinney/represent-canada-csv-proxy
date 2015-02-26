@@ -13,4 +13,4 @@ PLATFORMS
 
 DEPENDENCIES
   faraday
-  sinatra (~> 1.0.0)
+  sinatra
