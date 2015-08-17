@@ -58,6 +58,19 @@ get '/:id/:gid/:boundary_set' do
   source_url = "https://docs.google.com/spreadsheets/d/#{params[:id]}/export?gid=#{params[:gid]}&format=csv"
   response = Faraday.get(source_url)
   if response.status == 200
+    map = {}
+
+    if %w(census-subdivisions census-subdivisions-and-divisions).include?(params[:boundary_set])
+      DIVISIONS.each do |division|
+        id = division['id'].rpartition(':')[2]
+        if params[:sgc].nil? || id[0, 2] == params[:sgc]
+          key = "#{division['id'].rpartition('/')[2].split(':')[0]}/#{division['name']}"
+          map[key] ||= []
+          map[key] << id
+        end
+      end
+    end
+
     data = []
 
     CSV.parse(response.body.force_encoding('utf-8'), headers: true, header_converters: lambda{|h| h.downcase}, converters: lambda{|c| c && c.strip}) do |row|
@@ -66,16 +79,6 @@ get '/:id/:gid/:boundary_set' do
       elsif row['district id'] && row['district id'][/\A\d{7}\z/]
         boundary_url = "/boundaries/census-subdivisions/#{row['district id']}/"
       else
-        map = {}
-        DIVISIONS.each do |division|
-          id = division['id'].rpartition(':')[2]
-          if params[:sgc].nil? || id[0, 2] == params[:sgc]
-            key = "#{division['id'].rpartition('/')[2].split(':')[0]}/#{division['name']}"
-            map[key] ||= []
-            map[key] << id
-          end
-        end
-
         case params[:boundary_set]
         when 'census-subdivisions-and-divisions'
           key = "csd/#{row['district name']}"
