@@ -43,18 +43,6 @@ ADDRESS_HEADERS = [
 ]
 
 helpers do
-  def find_division_by_id(id)
-    DIVISIONS.find do |division|
-      division['id'] == id
-    end
-  end
-
-  def find_divisions_by_name_and_type(name, type, sgc = nil)
-    DIVISIONS.select do |division|
-      division['name'] == name && division['id'].rpartition('/')[2].split(':')[0] == type && (sgc.nil? || division['id'].rpartition(':')[2][0, 2] == sgc)
-    end
-  end
-
   # @see https://docs.djangoproject.com/en/1.7/ref/utils/#django.utils.text.slugify
   # @see https://gist.github.com/jpmckinney/1374639
   def slugify(value)
@@ -78,25 +66,35 @@ get '/:id/:gid/:boundary_set' do
       elsif row['district id'] && row['district id'][/\A\d{7}\z/]
         boundary_url = "/boundaries/census-subdivisions/#{row['district id']}/"
       else
+        map = {}
+        DIVISIONS.each do |division|
+          id = division['id'].rpartition(':')[2]
+          if params[:sgc].nil? || id[0, 2] == params[:sgc]
+            key = "#{division['id'].rpartition('/')[2].split(':')[0]}/#{division['name']}"
+            map[key] ||= []
+            map[key] << id
+          end
+        end
+
         case params[:boundary_set]
         when 'census-subdivisions-and-divisions'
-          divisions = find_divisions_by_name_and_type(row['district name'], 'csd', params[:sgc])
-          if divisions.one?
-            boundary_url = "/boundaries/census-subdivisions/#{divisions[0]['id'].rpartition(':')[2]}/"
+          key = "csd/#{row['district name']}"
+          if map[key] && map[key].one?
+            boundary_url = "/boundaries/census-subdivisions/#{map[key][0]}/"
           else
-            divisions = find_divisions_by_name_and_type(row['district name'], 'cd', params[:sgc])
-            if divisions.one?
-              boundary_url = "/boundaries/census-divisions/#{divisions[0]['id'].rpartition(':')[2]}/"
+            key = "cd/#{row['district name']}"
+            if map[key] && map[key].one?
+              boundary_url = "/boundaries/census-divisions/#{map[key][0]}/"
             else
-              halt(500, "no unique match for #{row['district name']} in census-subdivisions or census-divisions: #{divisions.map{|division| division['id'].rpartition(':')[2]}.join(' ')}")
+              halt(500, "no unique match for #{row['district name']} in census-subdivisions or census-divisions: #{map[key].join(' ')}")
             end
           end
         when 'census-subdivisions'
-          divisions = find_divisions_by_name_and_type(row['district name'], 'csd', params[:sgc])
-          if divisions
-            boundary_url = "/boundaries/census-subdivisions/#{divisions[0]['id'].rpartition(':')[2]}/"
+          key = "csd/#{row['district name']}"
+          if map[key] && map[key].one?
+            boundary_url = "/boundaries/census-subdivisions/#{map[key][0]}/"
           else
-            halt(500, "no unique match for #{row['district name']} in census-subdivisions: #{divisions.map{|division| division['id'].rpartition(':')[2]}.join(' ')}")
+            halt(500, "no unique match for #{row['district name']} in census-subdivisions: #{map[key].join(' ')}")
           end
         else
           boundary_url = "/boundaries/#{params[:boundary_set]}/#{slugify(row['district name'])}/"
