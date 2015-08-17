@@ -74,12 +74,24 @@ get '/:id/:gid/:boundary_set' do
 
     CSV.parse(response.body.force_encoding('utf-8'), headers: true, header_converters: lambda{|h| h.downcase}, converters: lambda{|c| c && c.strip}) do |row|
       case params[:boundary_set]
+      when 'census'
+        division = find_division_by_name_and_type(row['district name'], 'csd')
+        if division
+          boundary_url = "/boundaries/census-subdivisions/#{division['id'].rpartition(':')[2]}/"
+        else
+          division = find_division_by_name_and_type(row['district name'], 'cd')
+          if division
+            boundary_url = "/boundaries/census-divisions/#{division['id'].rpartition(':')[2]}/"
+          else
+            halt(500, "no match for #{row['district name']} in census")
+          end
+        end
       when 'census-subdivisions'
         division = find_division_by_name_and_type(row['district name'], 'csd')
         if division
           boundary_url = "/boundaries/census-subdivisions/#{division['id'].rpartition(':')[2]}/"
         else
-          halt(500, "no match for #{row['district name']}")
+          halt(500, "no match for #{row['district name']} in census-subdivisions")
         end
       else
         boundary_url = "/boundaries/#{params[:boundary_set]}/#{slugify(row['district name'])}/"
