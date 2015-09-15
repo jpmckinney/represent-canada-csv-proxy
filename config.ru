@@ -89,7 +89,7 @@ get '/:id/:gid/:boundary_set' do
             if map[key] && map[key].one?
               boundary_url = "/boundaries/census-divisions/#{map[key][0]}/"
             else
-              halt(500, "no unique match for #{row['district name']} in census-subdivisions or census-divisions: #{map[key].join(' ')}")
+              halt(500, "no unique match for #{row['district name']} in census-subdivisions or census-divisions: #{map[key] && map[key].join(' ')}")
             end
           end
         when 'census-subdivisions'
@@ -97,7 +97,7 @@ get '/:id/:gid/:boundary_set' do
           if map[key] && map[key].one?
             boundary_url = "/boundaries/census-subdivisions/#{map[key][0]}/"
           else
-            halt(500, "no unique match for #{row['district name']} in census-subdivisions: #{map[key].join(' ')}")
+            halt(500, "no unique match for #{row['district name']} in census-subdivisions: #{map[key] && map[key].join(' ')}")
           end
         else
           boundary_url = "/boundaries/#{params[:boundary_set]}/#{slugify(row['district name'])}/"
