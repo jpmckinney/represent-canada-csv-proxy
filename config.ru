@@ -73,7 +73,7 @@ get '/:id/:gid/:boundary_set' do
     data = []
 
     CSV.parse(response.body.force_encoding('utf-8'), headers: true, header_converters: lambda{|h| h.downcase}, converters: lambda{|c| c && c.strip}) do |row|
-      district_id = row.delete('district_id').to_s
+      district_id = row.delete('district id').to_s
       if district_id[/\A\d{4}\z/]
         boundary_url = "/boundaries/census-divisions/#{district_id}/"
       elsif district_id[/\A\d{7}\z/]
