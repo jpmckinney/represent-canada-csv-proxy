@@ -24,7 +24,6 @@ HEADER_MAP = {
   'website' => :url,
   'photo url' => :photo_url,
   # personal_url
-  # district_id
   'gender' => :gender,
 }
 
@@ -74,10 +73,11 @@ get '/:id/:gid/:boundary_set' do
     data = []
 
     CSV.parse(response.body.force_encoding('utf-8'), headers: true, header_converters: lambda{|h| h.downcase}, converters: lambda{|c| c && c.strip}) do |row|
-      if row['district id'] && row['district id'][/\A\d{4}\z/]
-        boundary_url = "/boundaries/census-divisions/#{row['district id']}/"
-      elsif row['district id'] && row['district id'][/\A\d{7}\z/]
-        boundary_url = "/boundaries/census-subdivisions/#{row['district id']}/"
+      district_id = row.delete('district_id')
+      if district_id && district_id[/\A\d{4}\z/]
+        boundary_url = "/boundaries/census-divisions/#{district_id}/"
+      elsif district_id && district_id[/\A\d{7}\z/]
+        boundary_url = "/boundaries/census-subdivisions/#{district_id}/"
       else
         case params[:boundary_set]
         when 'census-subdivisions-and-divisions'
@@ -122,7 +122,7 @@ get '/:id/:gid/:boundary_set' do
 
       (row.headers - HEADER_MAP.keys - OFFICE_HEADER_MAP.keys - ADDRESS_HEADERS).each do |header|
         if row[header].present?
-          extra[header.underscore] = row[header]
+          extra[header.gsub(' ', '_')] = row[header]
         end
       end
 
