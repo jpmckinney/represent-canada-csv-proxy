@@ -75,9 +75,9 @@ get '/:id/:gid/:boundary_set' do
     CSV.parse(response.body.force_encoding('utf-8'), headers: true, header_converters: lambda{|h| h.downcase}, converters: lambda{|c| c && c.strip}) do |row|
       district_id = row.delete('district id')
       if district_id && district_id[1].to_s[/\A\d{4}\z/]
-        boundary_url = "/boundaries/census-divisions/#{district_id}/"
+        boundary_url = "/boundaries/census-divisions/#{district_id[1]}/"
       elsif district_id && district_id[1].to_s[/\A\d{7}\z/]
-        boundary_url = "/boundaries/census-subdivisions/#{district_id}/"
+        boundary_url = "/boundaries/census-subdivisions/#{district_id[1]}/"
       else
         case params[:boundary_set]
         when 'census-subdivisions-and-divisions'
