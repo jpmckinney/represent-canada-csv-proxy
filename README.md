@@ -4,6 +4,8 @@
 
 This repository proxies Google Sheets with elected officials' contact information and reformats the data for import into Represent.
 
+**If this repository requires maintenance, it should be merged into [scrapers-ca](https://github.com/opencivicdata/scrapers-ca/) instead.**
+
 ## Getting Started
 
 ```
