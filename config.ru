@@ -61,7 +61,7 @@ get '/:id/:gid/:boundary_set' do
 
     if %w(census-subdivisions census-subdivisions-and-divisions).include?(params[:boundary_set])
       DIVISIONS.each do |division|
-        unless division['classification'] == 'IRI'
+        unless %w(IGD IRI).include?(division['classification'])
           id = division['id'].rpartition(':')[2]
           if params[:sgc].nil? || id[0, 2] == params[:sgc]
             key = "#{division['id'].rpartition('/')[2].split(':')[0]}/#{division['name']}"
