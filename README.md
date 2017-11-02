@@ -38,7 +38,7 @@ The proxy attempts to map the District ID or District Name to a boundary in Repr
 1. If a District ID is four digits, the proxy maps it to a Census division boundary.
 1. If a District ID is seven digits, the proxy maps it to a Census subdivision boundary.
 1. If `:boundary_set` is `census-subdivisions` or `census-subdivisions-and-divisions`, the proxy attempts to map the District Name to a unique boundary within the boundary set, and raises a error if it can't.
-1. If `:boundary_set` is anything else, the proxy slugifies the District Name and maps it to a boundary of the boundary set.
+1. If `:boundary_set` is anything else, the proxy slugifies the District Name and maps it to a boundary within the boundary set.
 
 The proxy performs no validation that the boundary exists, except in the third case as a side effect.
 
